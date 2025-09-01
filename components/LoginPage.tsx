@@ -54,13 +54,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onRegister, users }) => 
         }
     };
 
-    const inputClasses = "w-full px-4 py-2 border border-slate-300 bg-white text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500";
+    const baseInputClasses = "w-full px-4 py-2 border border-slate-300 text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500";
     const labelClasses = "block mb-1 text-sm text-slate-600 font-medium";
 
     return (
         <div 
-          className="min-h-screen w-full bg-slate-100 flex flex-col items-center justify-center p-4 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://raw.githubusercontent.com/Janier1992/pruebaalco2/main/img/fondo.jpg')" }}
+          className="min-h-screen w-full bg-slate-100 flex flex-col items-center justify-center p-4"
         >
             <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden">
                 <div className="p-8">
@@ -76,18 +75,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onRegister, users }) => 
                             <p className="text-center text-slate-500 mb-6 text-sm">Complete los campos para registrarse.</p>
                             
                             <form onSubmit={handleRegister} className="space-y-4">
-                                {error && <p className="text-red-500 text-center text-xs font-semibold">{error}</p>}
+                                {error && <p className="text-red-500 text-center text-sm font-medium mb-4">{error}</p>}
                                 <div>
                                     <label htmlFor="regUsername" className={labelClasses}>Nombre de Usuario:</label>
-                                    <input type="text" id="regUsername" value={regUsername} onChange={(e) => setRegUsername(e.target.value)} required placeholder="Su nombre" className={inputClasses}/>
+                                    <input type="text" id="regUsername" value={regUsername} onChange={(e) => setRegUsername(e.target.value)} required placeholder="Su nombre" className={`${baseInputClasses} bg-white`}/>
                                 </div>
                                 <div>
                                     <label htmlFor="regEmail" className={labelClasses}>Usuario (Email):</label>
-                                    <input type="email" id="regEmail" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required placeholder="ejemplo@alco.com" className={inputClasses}/>
+                                    <input type="email" id="regEmail" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required placeholder="ejemplo@alco.com" className={`${baseInputClasses} ${error ? 'bg-red-50' : 'bg-white'}`}/>
                                 </div>
                                 <div>
                                     <label htmlFor="regPassword" className={labelClasses}>Contraseña:</label>
-                                    <input type="password" id="regPassword" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required placeholder="••••••••" className={inputClasses}/>
+                                    <input type="password" id="regPassword" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required placeholder="••••••••" className={`${baseInputClasses} bg-white`}/>
                                 </div>
                                 <button type="submit" className="w-full py-2.5 bg-[#0a4a6e] text-white rounded-lg font-semibold hover:bg-[#083b5a] transition-colors">Registrarse</button>
                             </form>
@@ -99,17 +98,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onRegister, users }) => 
                         // Login Form
                         <div>
                             <h2 className="text-slate-800 text-center mb-1 text-xl font-bold">Acceso al Sistema</h2>
-                            <p className="text-center text-slate-500 mb-6 text-sm">Ingrese sus credenciales para continuar.</p>
+                            <p className="text-center text-slate-500 mb-4 text-sm">Ingrese sus credenciales para continuar.</p>
                             
+                            {error && <p className="text-red-500 text-center text-sm font-medium mb-4">{error}</p>}
+
                             <form onSubmit={handleLogin} className="space-y-4">
-                                {error && <p className="text-red-500 text-center text-xs font-semibold">{error}</p>}
                                 <div>
                                     <label htmlFor="email" className={labelClasses}>Usuario (Email):</label>
-                                    <input type="email" id="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required placeholder="ejemplo@alco.com" className={inputClasses}/>
+                                    <input type="email" id="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required placeholder="ejemplo@alco.com" className={`${baseInputClasses} ${error ? 'bg-blue-50' : 'bg-white'}`}/>
                                 </div>
                                 <div>
                                     <label htmlFor="password" className={labelClasses}>Contraseña:</label>
-                                    <input type="password" id="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required placeholder="••••••••" className={inputClasses}/>
+                                    <input type="password" id="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required placeholder="••••••••" className={`${baseInputClasses} bg-white`}/>
                                 </div>
                                 <button type="submit" className="w-full py-2.5 bg-[#0a4a6e] text-white rounded-lg font-semibold hover:bg-[#083b5a] transition-colors">
                                     Ingresar
@@ -122,11 +122,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onRegister, users }) => 
                     )}
                 </div>
             </div>
-             <footer className="absolute bottom-4">
-                <p className="text-center text-xs text-white/80 bg-slate-900/50 px-4 py-2 rounded-full">
-                    © 2025 Desarrollado por Geankarlo Paz Muñoz & Janier Mosquera Mosquera
-                </p>
-             </footer>
         </div>
     );
 };

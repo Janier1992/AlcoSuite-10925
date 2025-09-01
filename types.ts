@@ -24,13 +24,14 @@ export interface Document {
 }
 
 export interface InspectionData {
-    inspectionDate: string;
-    inspectorName: string;
-    productCode: string;
-    batchNumber: string;
-    measurementOne?: number | null;
-    measurementTwo?: number | null;
-    status: 'aprobado' | 'rechazado' | 'pendiente' | '';
-    defectType?: 'dimensional' | 'visual' | 'funcional' | 'otro' | '';
-    observations: string;
+    id: string;
+    fecha: string;
+    areaProceso: string;
+    op: string;
+    disenoReferencia: string;
+    estado: string;
+    defecto: string;
+    registro: string;
+    responsable: string;
+    observacion: string;
 }

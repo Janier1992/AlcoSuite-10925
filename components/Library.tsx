@@ -37,14 +37,13 @@ const Library: React.FC = () => {
         const file = event.target.files?.[0];
         if (file) {
             const newDocument: Document = {
-                id: documents.length + 1,
+                id: Date.now(),
                 name: file.name,
                 type: 'Formato', // Mock type
                 date: new Date().toISOString().split('T')[0],
                 size: `${Math.round(file.size / 1024)} KB`,
             };
             setDocuments(prev => [newDocument, ...prev]);
-            alert(`Archivo "${file.name}" subido (simulación).`);
         }
         event.target.value = ''; // Reset file input
     };
@@ -53,7 +52,50 @@ const Library: React.FC = () => {
         if(window.confirm('¿Está seguro de que desea eliminar este documento?')) {
             setDocuments(prev => prev.filter(doc => doc.id !== id));
         }
-    }
+    };
+
+    const handleView = (doc: Document) => {
+        const previewContent = `
+            <html>
+                <head>
+                    <title>Vista Previa: ${doc.name}</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        .container { background-color: white; padding: 2rem 3rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 800px; }
+                        h1 { color: #0c4a6e; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+                        p { line-height: 1.6; color: #374151; }
+                        strong { color: #1f2937; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Visualizando: ${doc.name}</h1>
+                        <p><strong>Tipo:</strong> ${doc.type}</p>
+                        <p><strong>Fecha:</strong> ${doc.date}</p>
+                        <p><strong>Tamaño:</strong> ${doc.size}</p>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0;" />
+                        <p>Este es un contenido simulado. En una aplicación real, aquí se mostraría el contenido del archivo PDF, DOCX, etc.</p>
+                    </div>
+                </body>
+            </html>
+        `;
+        const blob = new Blob([previewContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
+    const handleDownload = (doc: Document) => {
+        const fileContent = `Contenido simulado del documento:\n\nNombre: ${doc.name}\nTipo: ${doc.type}\nFecha: ${doc.date}\nTamaño: ${doc.size}`;
+        const blob = new Blob([fileContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.name.split('.').slice(0, -1).join('.') + '.txt'; // Download as .txt for simulation
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
     
     const inputStyles = "w-full p-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none";
     const labelStyles = "block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1";
@@ -100,7 +142,7 @@ const Library: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredAndSortedDocuments.map((doc) => (
+                        {filteredAndSortedDocuments.length > 0 ? filteredAndSortedDocuments.map((doc) => (
                             <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 border-b dark:border-slate-700">
                                 <td className="p-3 font-medium text-slate-800 dark:text-slate-200">{doc.name}</td>
                                 <td className="p-3 text-slate-600 dark:text-slate-400 hidden md:table-cell">{doc.type}</td>
@@ -108,13 +150,19 @@ const Library: React.FC = () => {
                                 <td className="p-3 text-slate-600 dark:text-slate-400 hidden lg:table-cell">{doc.size}</td>
                                 <td className="p-3">
                                     <div className="flex gap-2">
-                                        <button className="p-2 text-white bg-sky-600 rounded-md hover:bg-sky-700 transition-colors" title="Ver"><ViewIcon /></button>
-                                        <button className="p-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors" title="Descargar"><DownloadIcon /></button>
+                                        <button onClick={() => handleView(doc)} className="p-2 text-white bg-sky-600 rounded-md hover:bg-sky-700 transition-colors" title="Ver"><ViewIcon /></button>
+                                        <button onClick={() => handleDownload(doc)} className="p-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors" title="Descargar"><DownloadIcon /></button>
                                         <button onClick={() => handleDelete(doc.id)} className="p-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors" title="Borrar"><DeleteIcon /></button>
                                     </div>
                                 </td>
                             </tr>
-                        ))}
+                        )) : (
+                             <tr>
+                                <td colSpan={5} className="text-center p-4 text-slate-500 dark:text-slate-400">
+                                    No se encontraron documentos.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>
