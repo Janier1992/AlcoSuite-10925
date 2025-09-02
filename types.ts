@@ -34,4 +34,5 @@ export interface InspectionData {
     registro: string;
     responsable: string;
     observacion: string;
+    photo?: string;
 }

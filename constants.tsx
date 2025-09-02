@@ -18,10 +18,11 @@ export const ChevronDoubleLeftIcon = () => (<i className="fas fa-angle-double-le
 export const ChevronDoubleRightIcon = () => (<i className="fas fa-angle-double-right h-5 w-5"></i>);
 export const UploadIcon = () => (<i className="fas fa-upload mr-2"></i>);
 export const SearchIcon = () => (<i className="fas fa-search"></i>);
-export const ViewIcon = () => (<i className="fas fa-eye"></i>);
-export const DownloadIcon = () => (<i className="fas fa-download"></i>);
-export const DeleteIcon = () => (<i className="fas fa-trash"></i>);
-export const EditIcon = () => (<i className="fas fa-pencil-alt"></i>);
+export const ViewIcon = () => (<i className="fas fa-eye w-4 h-4"></i>);
+export const DownloadIcon = () => (<i className="fas fa-download w-4 h-4"></i>);
+export const DeleteIcon = () => (<i className="fas fa-trash w-4 h-4"></i>);
+export const EditIcon = () => (<i className="fas fa-pencil-alt w-4 h-4"></i>);
+export const CameraIcon = () => (<i className="fas fa-camera w-5 h-5"></i>);
 
 export const ClipboardCheckIcon = () => <i className="fas fa-clipboard-check h-8 w-8"></i>;
 export const CogIcon = () => <i className="fas fa-cog h-8 w-8"></i>;

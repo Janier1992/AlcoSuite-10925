@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { InspectionData } from '../types';
 import Breadcrumbs from './Breadcrumbs';
-import { AREAS_PROCESO, ESTADO_OPTIONS, DEFECTO_TYPES, REGISTRO_USERS, EditIcon, DeleteIcon } from '../constants';
+import { AREAS_PROCESO, ESTADO_OPTIONS, DEFECTO_TYPES, REGISTRO_USERS, EditIcon, DeleteIcon, CameraIcon } from '../constants';
 
 const INITIAL_FORM_DATA: Omit<InspectionData, 'id'> = {
     fecha: '',
@@ -13,7 +13,8 @@ const INITIAL_FORM_DATA: Omit<InspectionData, 'id'> = {
     defecto: 'Ninguno',
     registro: '',
     responsable: '',
-    observacion: ''
+    observacion: '',
+    photo: ''
 };
 
 const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode; }> = ({ isOpen, onClose, title, children }) => {
@@ -33,14 +34,88 @@ const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; chi
     );
 };
 
+const CameraModal: React.FC<{ isOpen: boolean; onClose: () => void; onCapture: (imageSrc: string) => void; }> = ({ isOpen, onClose, onCapture }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    useEffect(() => {
+        const startCamera = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                streamRef.current = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("No se pudo acceder a la cámara. Asegúrese de haber otorgado los permisos necesarios.");
+                onClose();
+            }
+        };
+
+        const stopCamera = () => {
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
+            }
+        };
+
+        if (isOpen) {
+            startCamera();
+        } else {
+            stopCamera();
+        }
+
+        return () => stopCamera();
+    }, [isOpen, onClose]);
+
+    const handleCapture = () => {
+        const video = videoRef.current;
+        if (video) {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            if (context) {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg');
+                onCapture(dataUrl);
+            }
+            onClose();
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-[1002] flex justify-center items-center p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-lg">
+                <div className="p-4 border-b dark:border-slate-700">
+                    <h2 className="text-xl font-bold text-sky-900 dark:text-sky-300">Capturar Evidencia</h2>
+                </div>
+                <div className="p-4">
+                    <video ref={videoRef} autoPlay playsInline className="w-full rounded-md"></video>
+                </div>
+                <div className="flex justify-end gap-3 p-4 border-t dark:border-slate-700">
+                    <button onClick={onClose} type="button" className="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-md hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">Cancelar</button>
+                    <button onClick={handleCapture} type="button" className="px-4 py-2 bg-sky-700 text-white rounded-md hover:bg-sky-800 transition-colors flex items-center gap-2">
+                        <CameraIcon /> Capturar Foto
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const Forms: React.FC = () => {
-    const DRAFT_KEY = 'inspectionFormDraft_v5';
+    const DRAFT_KEY = 'inspectionFormDraft_v6';
     const [formData, setFormData] = useState<Omit<InspectionData, 'id'>>(INITIAL_FORM_DATA);
     const [submissions, setSubmissions] = useState<InspectionData[]>([]);
 
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [isCameraOpen, setCameraOpen] = useState(false);
     const [currentInspection, setCurrentInspection] = useState<InspectionData | null>(null);
 
     useEffect(() => {
@@ -63,6 +138,19 @@ const Forms: React.FC = () => {
       } else {
           alert("No se encontró ningún borrador.");
       }
+    };
+    
+    const handleCapturePhoto = (imageSrc: string) => {
+        const newFormData = { ...formData, photo: imageSrc };
+        setFormData(newFormData);
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(newFormData));
+        setCameraOpen(false);
+    };
+
+    const handleClearPhoto = () => {
+        const newFormData = { ...formData, photo: '' };
+        setFormData(newFormData);
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(newFormData));
     };
 
     const clearForm = () => {
@@ -167,6 +255,22 @@ const Forms: React.FC = () => {
                         <div><label htmlFor="registro" className={labelStyles}>Registro:</label><select id="registro" name="registro" value={formData.registro} onChange={handleInputChange} required className={inputStyles}><option value="">Seleccione</option>{REGISTRO_USERS.map(user => <option key={user} value={user}>{user}</option>)}</select></div>
                         <div><label htmlFor="responsable" className={labelStyles}>Responsable:</label><input type="text" id="responsable" name="responsable" value={formData.responsable} onChange={handleInputChange} required className={inputStyles} /></div>
                         <div className="md:col-span-2 lg:col-span-4"><label htmlFor="observacion" className={labelStyles}>Observación:</label><textarea id="observacion" name="observacion" value={formData.observacion} onChange={handleInputChange} className={`${inputStyles} min-h-[80px]`}></textarea></div>
+                        <div className="md:col-span-2 lg:col-span-4">
+                            <label className={labelStyles}>Evidencia Fotográfica:</label>
+                            <div className="mt-1 flex items-center gap-4 p-2 border border-gray-300 dark:border-slate-600 rounded-md min-h-[104px]">
+                                {formData.photo ? (
+                                    <div className="relative">
+                                        <img src={formData.photo} alt="Evidencia" className="h-20 w-20 object-cover rounded-md" />
+                                        <button type="button" onClick={handleClearPhoto} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold hover:bg-red-700 transition-colors" title="Eliminar foto">&times;</button>
+                                    </div>
+                                ) : (
+                                    <div className="h-20 w-20 bg-slate-100 dark:bg-slate-700 rounded-md flex items-center justify-center text-slate-400 text-sm">Sin Foto</div>
+                                )}
+                                <button type="button" onClick={() => setCameraOpen(true)} className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm font-semibold">
+                                    <CameraIcon /> <span>Abrir Cámara</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </fieldset>
 
@@ -192,6 +296,7 @@ const Forms: React.FC = () => {
                     <th scope="col" className="p-3">Registro</th>
                     <th scope="col" className="p-3">Responsable</th>
                     <th scope="col" className="p-3">Observación</th>
+                    <th scope="col" className="p-3">Evidencia</th>
                     <th scope="col" className="p-3">Acciones</th>
                   </tr>
                 </thead>
@@ -208,21 +313,32 @@ const Forms: React.FC = () => {
                       <td className="p-3">{sub.responsable}</td>
                       <td className="p-3 truncate max-w-[150px]" title={sub.observacion}>{sub.observacion}</td>
                       <td className="p-3">
+                        {sub.photo ? (
+                            <a href={sub.photo} target="_blank" rel="noopener noreferrer">
+                                <img src={sub.photo} alt="Evidencia" className="h-10 w-10 object-cover rounded-md hover:scale-110 transition-transform" />
+                            </a>
+                        ) : (
+                            <span className="text-xs text-slate-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="p-3">
                          <div className="flex gap-2">
-                           <button onClick={() => handleOpenEditModal(sub)} className="text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300" title="Editar"><EditIcon /></button>
-                           <button onClick={() => handleOpenDeleteModal(sub)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" title="Eliminar"><DeleteIcon /></button>
+                           <button onClick={() => handleOpenEditModal(sub)} className="p-2 rounded-full text-sky-600 hover:bg-sky-100 hover:text-sky-800 dark:text-sky-400 dark:hover:bg-sky-900/50 dark:hover:text-sky-300 transition-colors" title="Editar"><EditIcon /></button>
+                           <button onClick={() => handleOpenDeleteModal(sub)} className="p-2 rounded-full text-red-500 hover:bg-red-100 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/50 dark:hover:text-red-300 transition-colors" title="Eliminar"><DeleteIcon /></button>
                          </div>
                       </td>
                     </tr>
                   )) : (
                     <tr>
-                        <td colSpan={10} className="text-center p-4 text-slate-500 dark:text-slate-400">No hay envíos recientes.</td>
+                        <td colSpan={11} className="text-center p-4 text-slate-500 dark:text-slate-400">No hay envíos recientes.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
         </div>
+
+        <CameraModal isOpen={isCameraOpen} onClose={() => setCameraOpen(false)} onCapture={handleCapturePhoto} />
 
         {currentInspection && (
             <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Inspección">
