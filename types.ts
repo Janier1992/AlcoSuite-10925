@@ -21,6 +21,7 @@ export interface Document {
     type: string;
     date: string;
     size: string;
+    url?: string;
 }
 
 export interface InspectionData {

@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import type { Document } from '../types';
 import { MOCK_DOCUMENTS, UploadIcon, SearchIcon, ViewIcon, DownloadIcon, DeleteIcon } from '../constants';
 import Breadcrumbs from './Breadcrumbs';
@@ -11,16 +11,25 @@ declare global {
     }
 }
 
-const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode; }> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<{ 
+    isOpen: boolean; 
+    onClose: () => void; 
+    title: string; 
+    children: React.ReactNode;
+    size?: 'md' | '3xl';
+}> = ({ isOpen, onClose, title, children, size = 'md' }) => {
     if (!isOpen) return null;
+    
+    const sizeClass = size === 'md' ? 'max-w-md' : 'max-w-3xl';
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[1001] flex justify-center items-center p-4" onClick={onClose}>
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center p-4 border-b dark:border-slate-700">
-                    <h2 className="text-xl font-bold text-sky-900 dark:text-sky-300">{title}</h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-2xl">&times;</button>
+            <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full ${sizeClass} max-h-[95vh] flex flex-col`} onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-4 border-b dark:border-slate-700 flex-shrink-0">
+                    <h2 className="text-xl font-bold text-sky-900 dark:text-sky-300 truncate pr-4">{title}</h2>
+                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-2xl flex-shrink-0">&times;</button>
                 </div>
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto">
                     {children}
                 </div>
             </div>
@@ -36,6 +45,8 @@ const Library: React.FC = () => {
     const [sortKey, setSortKey] = useState('name_asc');
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
+    const [isViewModalOpen, setViewModalOpen] = useState(false);
+    const [documentToView, setDocumentToView] = useState<Document | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,12 +76,14 @@ const Library: React.FC = () => {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            const fileUrl = URL.createObjectURL(file);
             const newDocument: Document = {
                 id: Date.now(),
                 name: file.name,
                 type: 'Formato', // Mock type
                 date: new Date().toISOString().split('T')[0],
                 size: `${Math.round(file.size / 1024)} KB`,
+                url: fileUrl,
             };
             setDocuments(prev => [newDocument, ...prev]);
         }
@@ -84,6 +97,10 @@ const Library: React.FC = () => {
 
     const handleConfirmDelete = () => {
         if (documentToDelete) {
+            // Revoke the object URL to prevent memory leaks
+            if (documentToDelete.url) {
+                URL.revokeObjectURL(documentToDelete.url);
+            }
             setDocuments(prev => prev.filter(doc => doc.id !== documentToDelete.id));
             setDeleteModalOpen(false);
             setDocumentToDelete(null);
@@ -91,36 +108,32 @@ const Library: React.FC = () => {
     };
 
     const handleView = (doc: Document) => {
-        const previewContent = `
-            <html>
-                <head>
-                    <title>Vista Previa: ${doc.name}</title>
-                    <style>
-                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                        .container { background-color: white; padding: 2rem 3rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 800px; }
-                        h1 { color: #0c4a6e; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
-                        p { line-height: 1.6; color: #374151; }
-                        strong { color: #1f2937; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>Visualizando: ${doc.name}</h1>
-                        <p><strong>Tipo:</strong> ${doc.type}</p>
-                        <p><strong>Fecha:</strong> ${doc.date}</p>
-                        <p><strong>Tamaño:</strong> ${doc.size}</p>
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0;" />
-                        <p>Este es un contenido simulado. En una aplicación real, aquí se mostraría el contenido del archivo PDF, DOCX, etc.</p>
-                    </div>
-                </body>
-            </html>
-        `;
-        const blob = new Blob([previewContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+        // For uploaded PDFs, open the file in a new tab for a reliable preview.
+        if (doc.url && doc.name.toLowerCase().endsWith('.pdf')) {
+            window.open(doc.url, '_blank');
+        } else {
+            // For mock documents or other file types, show the metadata modal.
+            setDocumentToView(doc);
+            setViewModalOpen(true);
+        }
+    };
+    
+    const handleCloseViewModal = () => {
+        setViewModalOpen(false);
+        setDocumentToView(null);
     };
 
-    const handleDownload = (doc: Document) => {
+    const downloadOriginalFile = (doc: Document) => {
+        if (!doc.url) return;
+        const link = document.createElement('a');
+        link.href = doc.url;
+        link.setAttribute('download', doc.name);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const downloadPdfSummary = (doc: Document) => {
         const { jsPDF } = window.jspdf;
         if (!jsPDF) {
             alert("La biblioteca PDF no se pudo cargar. Inténtelo de nuevo.");
@@ -155,9 +168,30 @@ const Library: React.FC = () => {
         pdf.text("Este documento fue generado automáticamente por Alco Suite.", 20, 100, { align: 'left' });
 
         const safeFileName = doc.name.split('.').slice(0, -1).join('.') || doc.name;
-        pdf.save(`${safeFileName}.pdf`);
+        pdf.save(`${safeFileName}_detalles.pdf`);
+    };
+
+    const handleDownload = (doc: Document) => {
+        // If the document has a URL, it's an uploaded file. Download it directly.
+        if (doc.url) {
+            downloadOriginalFile(doc);
+        } else {
+            // Otherwise, it's a mock document. Generate the summary PDF.
+            downloadPdfSummary(doc);
+        }
     };
     
+    const getFileIcon = (doc: Document) => {
+        const lowerName = doc.name.toLowerCase();
+        if (lowerName.endsWith('.pdf')) {
+            return <i className="fas fa-file-pdf text-red-500 text-7xl"></i>;
+        }
+        if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) {
+            return <i className="fas fa-file-word text-blue-500 text-7xl"></i>;
+        }
+        return <i className="fas fa-file-alt text-slate-500 text-7xl"></i>;
+    };
+
     const inputStyles = "w-full p-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none";
     const labelStyles = "block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1";
 
@@ -189,7 +223,7 @@ const Library: React.FC = () => {
                 
                 <div className="mb-6">
                     <button onClick={handleUploadClick} className="px-4 py-2 bg-sky-900 dark:bg-sky-700 text-white rounded-md hover:bg-sky-800 dark:hover:bg-sky-600 transition-colors flex items-center shadow-sm"><UploadIcon /> Subir Documento</button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx" />
                 </div>
 
                 <div className="overflow-x-auto">
@@ -244,6 +278,69 @@ const Library: React.FC = () => {
                     </>
                 )}
             </Modal>
+             {documentToView && (
+                <Modal 
+                    isOpen={isViewModalOpen} 
+                    onClose={handleCloseViewModal} 
+                    title={`Detalles: ${documentToView.name}`}
+                    size="3xl"
+                >
+                    <div className="space-y-6">
+                        {/* Metadata Section */}
+                        <div className="flex flex-col md:flex-row gap-6">
+                            <div className="flex-shrink-0 w-full md:w-28 flex justify-center items-center bg-slate-100 dark:bg-slate-700/50 p-6 rounded-lg">
+                                {getFileIcon(documentToView)}
+                            </div>
+                            <div className="flex-grow">
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Nombre del Archivo:</p>
+                                        <p className="text-base text-slate-800 dark:text-slate-200 break-all">{documentToView.name}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t dark:border-slate-600">
+                                         <div>
+                                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Tipo:</p>
+                                            <p className="text-base text-slate-800 dark:text-slate-200">{documentToView.type}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Fecha de Subida:</p>
+                                            <p className="text-base text-slate-800 dark:text-slate-200">{documentToView.date}</p>
+                                        </div>
+                                         <div>
+                                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Tamaño:</p>
+                                            <p className="text-base text-slate-800 dark:text-slate-200">{documentToView.size}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Preview Section */}
+                        <div>
+                           <div className="p-4 h-32 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-900/50 rounded-lg border-2 border-dashed dark:border-slate-700 text-center">
+                                <i className="fas fa-eye-slash text-3xl text-slate-400 dark:text-slate-500 mb-2"></i>
+                                <p className="text-slate-600 dark:text-slate-400 font-semibold">
+                                    Vista Previa no Disponible
+                                </p>
+                                <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">
+                                    {documentToView.url
+                                        ? "La previsualización en la aplicación solo está disponible para archivos PDF."
+                                        : "Esta es una vista de metadatos. La vista previa del contenido no está disponible."
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 mt-6 border-t dark:border-slate-700">
+                        <button onClick={handleCloseViewModal} className="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-md hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">Cerrar</button>
+                        <button 
+                            onClick={() => { if (documentToView) handleDownload(documentToView); }}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2">
+                            <DownloadIcon /> Descargar
+                        </button>
+                    </div>
+                </Modal>
+            )}
         </>
     );
 };
