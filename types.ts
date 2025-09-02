@@ -1,4 +1,3 @@
-
 export interface User {
     id: string;
     email: string;
@@ -36,4 +35,33 @@ export interface InspectionData {
     responsable: string;
     observacion: string;
     photo?: string;
+}
+
+export type Priority = 'Baja' | 'Media' | 'Alta';
+
+export interface UserAvatar {
+    id: string;
+    initials: string;
+}
+
+export interface Label {
+    id: string;
+    name: string;
+    color: 'blue' | 'purple' | 'green' | 'yellow';
+}
+
+export interface Task {
+    id: string;
+    title: string;
+    description: string;
+    priority: Priority;
+    dueDate: string;
+    labels: Label[];
+    assignedUsers: UserAvatar[];
+}
+
+export interface Column {
+    id: 'todo' | 'inprogress' | 'review' | 'done';
+    title: string;
+    tasks: Task[];
 }

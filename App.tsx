@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, Fragment } from 'react';
 // FIX: Changed to namespace import to resolve "no exported member" errors from react-router-dom.
 import * as rr from 'react-router-dom';
@@ -10,6 +9,7 @@ import Forms from './components/Forms';
 import Library from './components/Library';
 import Indicators from './components/Indicators';
 import Reports from './components/Reports';
+import Projects from './components/Projects';
 import type { User } from './types';
 import { NAV_ITEMS } from './constants';
 import { Bars3Icon, BellIcon, ChevronDownIcon, UserCircleIcon, XMarkIcon, SunIcon, MoonIcon } from './constants';
@@ -188,6 +188,7 @@ function AppInternal() {
                 <Route path="quality/library" element={<Library />} />
                 <Route path="quality/indicators" element={<Indicators />} />
                 <Route path="reports" element={<Reports />} />
+                <Route path="projects" element={<Projects />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
         </Routes>

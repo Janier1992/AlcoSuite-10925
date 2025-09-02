@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { NavItem } from './types';
 
@@ -11,6 +10,7 @@ export const FileAltIcon = () => (<i className="fas fa-file-alt w-5 h-5"></i>);
 export const SignOutIcon = () => (<i className="fas fa-sign-out-alt w-5 h-5"></i>);
 export const ChevronDownIcon: React.FC<{ className?: string }> = ({ className }) => (<i className={`fas fa-chevron-down text-xs transition-transform duration-300 ${className || ''}`}></i>);
 export const ChevronRightIcon = () => (<i className="fas fa-chevron-right text-xs transition-transform duration-300"></i>);
+export const ProjectDiagramIcon = () => (<i className="fas fa-project-diagram w-5 h-5"></i>);
 
 export const Bars3Icon = () => (<i className="fas fa-bars h-5 w-5"></i>);
 export const XMarkIcon = () => (<i className="fas fa-times h-5 w-5"></i>);
@@ -74,6 +74,12 @@ export const NAV_ITEMS: NavItem[] = [
         label: 'Reportes',
         path: '/reports',
         icon: FileAltIcon,
+    },
+    {
+        id: 'projects',
+        label: 'Proyectos',
+        path: '/projects',
+        icon: ProjectDiagramIcon,
     },
 ];
 
