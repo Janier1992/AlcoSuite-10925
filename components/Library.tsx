@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import type { Document } from '../types';
 import { MOCK_DOCUMENTS, UploadIcon, SearchIcon, ViewIcon, DownloadIcon, DeleteIcon } from '../constants';
@@ -192,7 +193,7 @@ const Library: React.FC = () => {
         return <i className="fas fa-file-alt text-slate-500 text-7xl"></i>;
     };
 
-    const inputStyles = "w-full p-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none";
+    const inputStyles = "w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500";
     const labelStyles = "block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1";
 
     return (

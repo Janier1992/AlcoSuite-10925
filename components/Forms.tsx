@@ -1,8 +1,10 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { InspectionData } from '../types';
 import Breadcrumbs from './Breadcrumbs';
 import { AREAS_PROCESO, ESTADO_OPTIONS, DEFECTO_TYPES, REGISTRO_USERS, EditIcon, DeleteIcon, CameraIcon } from '../constants';
+import { useNotification } from './NotificationSystem';
 
 const INITIAL_FORM_DATA: Omit<InspectionData, 'id'> = {
     fecha: '',
@@ -117,6 +119,7 @@ const Forms: React.FC = () => {
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
     const [isCameraOpen, setCameraOpen] = useState(false);
     const [currentInspection, setCurrentInspection] = useState<InspectionData | null>(null);
+    const { addNotification } = useNotification();
 
     useEffect(() => {
         // You could load initial submissions from an API here
@@ -165,6 +168,21 @@ const Forms: React.FC = () => {
             ...formData
         };
         setSubmissions(prev => [newSubmission, ...prev]);
+
+        if (newSubmission.estado === 'Rechazado') {
+            addNotification({
+                type: 'error',
+                title: 'Inspección Rechazada',
+                message: `El formulario para OP #${newSubmission.op} fue registrado como rechazado.`
+            });
+        } else if (newSubmission.estado === 'Aprobado') {
+            addNotification({
+                type: 'success',
+                title: 'Inspección Guardada',
+                message: `El formulario para OP #${newSubmission.op} fue guardado y aprobado.`
+            });
+        }
+
         clearForm();
     };
     
@@ -179,6 +197,13 @@ const Forms: React.FC = () => {
     };
 
     const handleUpdateSubmission = (updatedInspection: InspectionData) => {
+        if (currentInspection && currentInspection.estado !== 'Rechazado' && updatedInspection.estado === 'Rechazado') {
+             addNotification({
+                type: 'error',
+                title: 'Inspección Actualizada a Rechazado',
+                message: `El estado del formulario para OP #${updatedInspection.op} ha cambiado a rechazado.`
+            });
+        }
         setSubmissions(prev => prev.map(sub => sub.id === updatedInspection.id ? updatedInspection : sub));
         setEditModalOpen(false);
         setCurrentInspection(null);
@@ -192,7 +217,7 @@ const Forms: React.FC = () => {
         }
     };
 
-    const inputStyles = "w-full p-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-colors";
+    const inputStyles = "w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500";
     const labelStyles = "font-medium text-slate-600 dark:text-slate-400 block mb-1 text-sm";
     
     const renderStatusBadge = (status: string) => (

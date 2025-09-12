@@ -47,7 +47,15 @@ export interface UserAvatar {
 export interface Label {
     id: string;
     name: string;
-    color: 'blue' | 'purple' | 'green' | 'yellow';
+    color: 'blue' | 'purple' | 'green' | 'yellow' | 'red' | 'gray';
+}
+
+export interface Attachment {
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+    url: string; // data URL
 }
 
 export interface Task {
@@ -58,6 +66,7 @@ export interface Task {
     dueDate: string;
     labels: Label[];
     assignedUsers: UserAvatar[];
+    attachments: Attachment[];
 }
 
 export interface Column {

@@ -79,7 +79,8 @@ const Indicators: React.FC = () => {
                                 fill="#8884d8"
                                 dataKey="value"
                                 nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                // FIX: Explicitly type the props for the label renderer to fix TypeScript error.
+                                label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                             >
                                 {MOCK_CHART_DATA.approval.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.fill} />

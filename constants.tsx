@@ -1,5 +1,5 @@
 import React from 'react';
-import type { NavItem } from './types';
+import type { NavItem, Task, Column, UserAvatar, Label } from './types';
 
 export const TachometerIcon = () => (<i className="fas fa-tachometer-alt w-5 h-5"></i>);
 export const CheckCircleIcon = () => (<i className="fas fa-check-circle w-5 h-5"></i>);
@@ -35,6 +35,14 @@ export const CalendarIcon = () => <i className="fas fa-calendar-alt mr-2"></i>
 
 export const SunIcon = () => <i className="fas fa-sun h-5 w-5"></i>;
 export const MoonIcon = () => <i className="fas fa-moon h-5 w-5"></i>;
+
+export const InfoCircleIcon = () => <i className="fas fa-info-circle w-5 h-5"></i>;
+export const ExclamationTriangleIcon = () => <i className="fas fa-exclamation-triangle w-5 h-5"></i>;
+export const XCircleIcon = () => <i className="fas fa-times-circle w-5 h-5"></i>;
+
+export const PaperclipIcon = () => <i className="fas fa-paperclip"></i>;
+export const PlusIcon = () => <i className="fas fa-plus"></i>;
+
 
 export const NAV_ITEMS: NavItem[] = [
     {
@@ -119,4 +127,40 @@ export const MOCK_CHART_DATA = {
     { name: 'Abr', value: 95.5 },
     { name: 'May', value: 95.7 },
   ],
+};
+
+// --- Project Management Data ---
+
+export const PROJECT_USERS: UserAvatar[] = [
+    { id: 'u1', initials: 'JD' },
+    { id: 'u2', initials: 'AS' },
+    { id: 'u3', initials: 'MR' },
+    { id: 'u4', initials: 'LP' },
+];
+
+export const AVAILABLE_LABELS: Label[] = [
+    { id: 'l1', name: 'Diseño', color: 'purple' },
+    { id: 'l2', name: 'Backend', color: 'blue' },
+    { id: 'l3', name: 'DevOps', color: 'yellow' },
+    { id: 'l4', name: 'Seguridad', color: 'red' },
+    { id: 'l5', name: 'Frontend', color: 'green' },
+    { id: 'l6', name: 'Arquitectura', color: 'gray' },
+    { id: 'l7', name: 'Planificación', color: 'blue' },
+];
+
+export const INITIAL_TASKS: Task[] = [
+    { id: '1', title: 'Diseñar interfaz de usuario', description: 'Crear mockups y prototipos de alta fidelidad para la nueva plataforma.', priority: 'Alta', dueDate: '2024-07-25', labels: [AVAILABLE_LABELS[0]], assignedUsers: [PROJECT_USERS[0], PROJECT_USERS[1]], attachments: []},
+    { id: '2', title: 'Configurar base de datos', description: 'Instalar y configurar la base de datos PostgreSQL en el servidor de desarrollo.', priority: 'Media', dueDate: '2024-07-28', labels: [AVAILABLE_LABELS[1]], assignedUsers: [PROJECT_USERS[2]], attachments: []},
+    { id: '3', title: 'Investigar tecnologías de despliegue', description: 'Analizar opciones como Docker, Kubernetes y Vercel para el despliegue de la aplicación.', priority: 'Baja', dueDate: '2024-08-10', labels: [AVAILABLE_LABELS[2]], assignedUsers: [PROJECT_USERS[0]], attachments: []},
+    { id: '4', title: 'Desarrollar módulo de autenticación', description: 'Implementar el registro de usuarios, inicio de sesión y gestión de tokens JWT.', priority: 'Alta', dueDate: '2024-08-01', labels: [AVAILABLE_LABELS[1], AVAILABLE_LABELS[3]], assignedUsers: [PROJECT_USERS[2], PROJECT_USERS[1]], attachments: []},
+    { id: '5', title: 'Crear componentes UI reutilizables', description: 'Desarrollar componentes base como botones, modales y tarjetas en React.', priority: 'Media', dueDate: '2024-07-29', labels: [AVAILABLE_LABELS[4]], assignedUsers: [PROJECT_USERS[0]], attachments: []},
+    { id: '6', title: 'Revisar arquitectura del sistema', description: 'Validar el diseño de la arquitectura de microservicios propuesta.', priority: 'Media', dueDate: '2024-08-05', labels: [AVAILABLE_LABELS[5]], assignedUsers: [PROJECT_USERS[2], PROJECT_USERS[0]], attachments: []},
+    { id: '7', title: 'Definir requisitos del proyecto', description: 'Documentar los requerimientos funcionales y no funcionales del proyecto.', priority: 'Baja', dueDate: '2024-07-15', labels: [AVAILABLE_LABELS[6]], assignedUsers: [PROJECT_USERS[0], PROJECT_USERS[2]], attachments: []},
+];
+
+export const INITIAL_COLUMNS: { [key: string]: Column } = {
+    todo: { id: 'todo', title: 'Por Hacer', tasks: [INITIAL_TASKS[0], INITIAL_TASKS[1], INITIAL_TASKS[2]] },
+    inprogress: { id: 'inprogress', title: 'En Progreso', tasks: [INITIAL_TASKS[3], INITIAL_TASKS[4]] },
+    review: { id: 'review', title: 'Revisión', tasks: [INITIAL_TASKS[5]] },
+    done: { id: 'done', title: 'Completado', tasks: [INITIAL_TASKS[6]] },
 };

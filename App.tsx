@@ -15,6 +15,7 @@ import { NAV_ITEMS } from './constants';
 import { Bars3Icon, BellIcon, ChevronDownIcon, UserCircleIcon, XMarkIcon, SunIcon, MoonIcon } from './constants';
 import { VALID_USERS } from './users';
 import { ThemeProvider, useTheme } from './components/ThemeContext';
+import { NotificationProvider } from './components/NotificationSystem';
 
 
 const ThemeToggleButton: React.FC = () => {
@@ -179,20 +180,22 @@ function AppInternal() {
   }
   
   return (
-    <HashRouter>
-        <Routes>
-            <Route path="/" element={<MainLayout user={user} onLogout={handleLogout} />}>
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard user={user}/>} />
-                <Route path="quality/forms" element={<Forms />} />
-                <Route path="quality/library" element={<Library />} />
-                <Route path="quality/indicators" element={<Indicators />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Route>
-        </Routes>
-    </HashRouter>
+    <NotificationProvider>
+        <HashRouter>
+            <Routes>
+                <Route path="/" element={<MainLayout user={user} onLogout={handleLogout} />}>
+                    <Route index element={<Navigate to="/dashboard" replace />} />
+                    <Route path="dashboard" element={<Dashboard user={user}/>} />
+                    <Route path="quality/forms" element={<Forms />} />
+                    <Route path="quality/library" element={<Library />} />
+                    <Route path="quality/indicators" element={<Indicators />} />
+                    <Route path="reports" element={<Reports />} />
+                    <Route path="projects" element={<Projects />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Route>
+            </Routes>
+        </HashRouter>
+    </NotificationProvider>
   );
 }
 

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as rr from 'react-router-dom';
 const { Link } = rr;
 import type { User } from '../types';
-import { ClipboardCheckIcon, CogIcon, ChartPieIcon, NAV_ITEMS } from '../constants';
+import { ClipboardCheckIcon, CogIcon, ChartPieIcon, NAV_ITEMS, INITIAL_TASKS } from '../constants';
+import { useNotification } from './NotificationSystem';
 
 interface DashboardProps {
   user: User;
@@ -47,6 +48,35 @@ const RecentActivityItem: React.FC<{ icon: string; text: string; time: string; }
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
+    const { addNotification } = useNotification();
+
+    useEffect(() => {
+        const NOTIFICATION_KEY = 'dueDateNotifsChecked_v1';
+        const hasChecked = sessionStorage.getItem(NOTIFICATION_KEY);
+
+        if (!hasChecked) {
+            const today = new Date();
+            // Set time to 00:00:00 to compare dates only
+            today.setHours(0, 0, 0, 0);
+
+            const sevenDaysFromNow = new Date(today);
+            sevenDaysFromNow.setDate(today.getDate() + 7);
+
+            INITIAL_TASKS.forEach(task => {
+                const dueDate = new Date(task.dueDate);
+                // Check if due date is in the future but within the next 7 days
+                if (dueDate >= today && dueDate <= sevenDaysFromNow) {
+                     addNotification({
+                        type: 'warning',
+                        title: 'Tarea Próxima a Vencer',
+                        message: `La tarea "${task.title}" vence el ${task.dueDate}.`
+                    });
+                }
+            });
+            sessionStorage.setItem(NOTIFICATION_KEY, 'true');
+        }
+    }, [addNotification]);
+
     return (
         <div>
             <WelcomeHeader username={user.username} />
